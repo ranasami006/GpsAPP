@@ -16,16 +16,20 @@ import Constants from 'expo-constants';
 import { Header } from 'react-native-elements'
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
+import {updatePassword} from '../Screens/Firebase/auth'
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-//const navigation = useNavigation();
-export default class changePassword extends Component {
 
-    state = {
-        password: '',
-        email: '',
-        isEnabled:'false',
-    }
+export default class changePassword extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            newpassword: '',
+            currPassword:'',
+            confirmpassword: '',
+            isEnabled:false,
+        }
+    }   
     _handleToggleSwitch = () =>
     this.setState(state => ({
         isEnabled: !state.isEnabled,
@@ -33,6 +37,67 @@ export default class changePassword extends Component {
     async componentDidMount() {
 
     }
+
+    async UpdatePassword(){
+        let success= await updatePassword(this.state.newpassword);
+        if(success){
+            alert('Password is successfuly reset');
+            this.props.navigation.navigate('signIn');
+        }
+        else{
+            this.setState({ loader: false });
+        }
+        
+      }
+    async ValidationFn() {
+        this.setState({ loader: true, ErrorMessege: '' });
+        let TempCheck = await this.CheckValidateFn();
+
+        switch (TempCheck) {
+            case 0:
+                this.UpdatePassword();
+                break;
+            case 1:
+                this.setState({ loader: false });
+                break;
+            default:
+                break;
+        }
+    }
+    async CheckValidateFn() {  
+        let reg1 = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+        if (reg1.test(this.state.currPassword) === false) {
+            this.state.currPassword === ''
+                ? this.setState({ ErrorMessege: 'Current password cannot not be empty' })
+                : this.state.currPassword.length > 7
+                    ? this.setState({ ErrorMessege: 'Please enter proper current password that contains at least one letter, one number and one special character ' })
+                    : this.setState({
+                        ErrorMessege: 'Current password should be atleast 8 characters!',
+                    });
+            // this.setState({ email: text })
+            return 1;
+        }
+
+        let reg2 = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+        if (reg2.test(this.state.newpassword) === false) {
+            this.state.newpassword === ''
+                ? this.setState({ ErrorMessege: ' New Password cannot not be empty' })
+                : this.state.newpassword.length > 7
+                    ? this.setState({ ErrorMessege: 'Please enter proper new password that contains at least one letter, one number and one special character ' })
+                    : this.setState({
+                        ErrorMessege: 'New password should be atleast 8 characters!',
+                    });
+            // this.setState({ email: text })
+            return 1;
+        }
+
+        if(this.state.newpassword!=this.state.confirmpassword){
+        this.setState({ ErrorMessege: 'New password and confirm password should be same' })
+            return 1;    
+    }
+        return 0;
+    }
+
    
     render() {
 
@@ -72,13 +137,13 @@ export default class changePassword extends Component {
                                 ref={(input) => this._password = input}
 
                                 style={styles.textinput}
-                                secureTextEntry={this.state.secured}
+                                secureTextEntry={this.state.isEnabled}
                                 placeholder={'Current Password'}
                                 placeholderTextColor={'grey'}
                                 placeholderStyle={{ marginLeft: responsiveHeight(5) }}
-                                value={this.state.password}
+                                value={this.state.currPassword}
                                 onChangeText={(text) => {
-                                    this.setState({ password: text });
+                                    this.setState({ currPassword: text });
                                 }}
                             />
                         </View>
@@ -88,14 +153,14 @@ export default class changePassword extends Component {
                                 ref={(input) => this._password = input}
 
                                 style={styles.textinput}
-                                secureTextEntry={this.state.secured}
+                                secureTextEntry={this.state.isEnabled}
                                 placeholder={'New Password'}
                                 placeholderTextColor={'grey'}
                                 placeholderStyle={{ marginLeft: responsiveHeight(5) }}
-                                keyboardType={"numeric"}
-                                value={this.state.password}
+                                
+                                value={this.state.newpassword}
                                 onChangeText={(text) => {
-                                    this.setState({ password: text });
+                                    this.setState({ newpassword: text });
                                 }}
                             />
                         </View>
@@ -104,14 +169,14 @@ export default class changePassword extends Component {
                                 ref={(input) => this._password = input}
 
                                 style={styles.textinput}
-                                secureTextEntry={this.state.secured}
+                                secureTextEntry={this.state.isEnabled}
                                 placeholder={'Confirm Password'}
                                 placeholderTextColor={'grey'}
                                 placeholderStyle={{ marginLeft: responsiveHeight(5) }}
-                                keyboardType={"numeric"}
-                                value={this.state.password}
+                                
+                                value={this.state.confirmpassword}
                                 onChangeText={(text) => {
-                                    this.setState({ password: text });
+                                    this.setState({ confirmpassword: text });
                                 }}
                             />
                         </View>
@@ -126,19 +191,19 @@ export default class changePassword extends Component {
                                 style={{ transform: [{ scaleX: .7 }, { scaleY: .7 }] }}
                             />
                             </View> 
-                        
-                        <Text style={{ textAlign: 'center', color: '#220764', fontSize: responsiveFontSize(2) }}>{this.state.ErrorMessege}</Text>
-                    </View>
-
+                      <Text style={{ textAlign: 'center', color: 'red', fontSize: responsiveFontSize(2),padding:responsiveHeight(2) }}>{this.state.ErrorMessege}</Text>
+                       
+                      </View>
+                      
                     <TouchableOpacity
                         style={styles.button1}
                         onPress={() => {
-                            // this.ValidationFn();
-                            this.props.navigation.navigate('Tab');
+                            this.ValidationFn();
+                           // this.props.navigation.navigate('Tab');
                         }}>
                         {
                             this.state.loader ?
-                                <ActivityIndicator size={'small'} />
+                                <ActivityIndicator size={'large'} color={'white'} />
                                 :
                                 <Text style={[styles.buttonText, { color: '#fff' }]}>Save</Text>
                         }

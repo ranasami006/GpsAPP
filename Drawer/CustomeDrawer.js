@@ -19,6 +19,7 @@ import {
   responsiveHeight,
   responsiveFontSize,
 } from 'react-native-responsive-dimensions';
+import * as firebase from 'firebase'
 import { FontAwesome, Entypo, Ionicons, AntDesign, MaterialIcons } from '@expo/vector-icons';
 
 export default class CustomDrawer extends Component {
@@ -117,7 +118,8 @@ export default class CustomDrawer extends Component {
               </View>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => {
+              onPress={ async () => {
+                await firebase.auth().signOut();
                 this.props.navigation.navigate('signIn');
               }}
               style={styles.tab}>

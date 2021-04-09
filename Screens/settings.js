@@ -73,7 +73,7 @@ export default class settings extends Component {
                         </View>
                         <TouchableOpacity style={styles.passwordView}
                         onPress={() => {
-                            this.props.navigation.navigate('lanhuages');
+                            this.props.navigation.navigate('languges');
                           }}
                         >
                         <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>Languge</Text>
@@ -95,7 +95,7 @@ export default class settings extends Component {
                         </View>
                         <TouchableOpacity style={styles.passwordView}
                         onPress={() => {
-                            this.props.navigation.navigate('');
+                            this.props.navigation.navigate('About');
                           }}
                         >
                         <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>Help center</Text>

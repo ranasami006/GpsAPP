@@ -21,6 +21,7 @@ import changePassword from './Screens/changePassword'
 import languges from './Screens/languges'
 import About from './Screens/About'
 import settings from './Screens/settings'
+import editProfile from './Screens/editProfile'
 
 const Drawer = createDrawerNavigator();
 const MainStack = createStackNavigator();
@@ -40,14 +41,7 @@ const Main = () => {
           <MainStack.Screen name="languges" component={languges} />
           <MainStack.Screen name="About" component={About} />
           <MainStack.Screen name="settings" component={settings} />
-       
-          {/* <MainStack.Screen name="Screen2" component={Screen2} />
-          <MainStack.Screen name="Screen3" component={Screen3} />
-          <MainStack.Screen name="Screen4" component={Screen4} />
-           <AppTabNavigator.Screen name="Home" component={Home} /> */}
-            {/* <AppTabNavigator.Screen name="Screen2" component={Screen2} />
-          <AppTabNavigator.Screen name="Screen3" component={Screen3} /> */}
-           
+          <MainStack.Screen name="editProfile" component={editProfile} />       
       </MainStack.Navigator>
   );
 

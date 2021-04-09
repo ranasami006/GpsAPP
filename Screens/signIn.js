@@ -11,17 +11,75 @@ import {
     responsiveFontSize,
 } from 'react-native-responsive-dimensions';
 import { AntDesign } from '@expo/vector-icons';
+import { connectFirebase } from '../Screens/Firebase/config'
+import { signInFirebase } from '../Screens/Firebase/auth'
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 export default class signIn extends Component {
-
-    state = {
-        password: '',
-        email: '',
+    constructor(props) {
+        super(props);
+        this.state = {
+            email: '',
+            password: '',
+        }
     }
     async componentDidMount() {
-
+        connectFirebase();
     }
+    async LoginFn(){
+        let success= await signInFirebase(this.state.email,this.state.password);
+        if(success){
+            this.setState({ loader: false });
+            this.props.navigation.navigate('ProfileView');
+        }
+        else{
+            this.setState({ loader: false });
+        }
+        
+      }
+    async ValidationFn() {
+        this.setState({ loader: true, ErrorMessege: '' });
+        let TempCheck = await this.CheckValidateFn();
+
+        switch (TempCheck) {
+            case 0:
+                this.LoginFn();
+                break;
+            case 1:
+                this.setState({ loader: false });
+                break;
+            default:
+                break;
+        }
+    }
+    async CheckValidateFn() {
+        //EmailCheck
+        let reg2 = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        if (reg2.test(this.state.email) === false) {
+            console.log('Email is Not Correct');
+            this.state.email !== undefined && this.state.email !== ''
+                ? this.setState({ ErrorMessege: 'Please enter proper Email Id' })
+                : this.setState({ ErrorMessege: 'Email cannot be empty' });
+            // this.setState({ email: text })
+            return 1;
+        }
+
+        let reg1 = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+        if (reg1.test(this.state.password) === false) {
+            console.log('UserName is Not Correct');
+            this.state.password === ''
+                ? this.setState({ ErrorMessege: 'Password cannot Not be empty' })
+                : this.state.password.length > 7
+                    ? this.setState({ ErrorMessege: 'Please enter proper Password that contains at least one letter, one number and one special character ' })
+                    : this.setState({
+                        ErrorMessege: 'Password should be atleast 8 characters!',
+                    });
+            // this.setState({ email: text })
+            return 1;
+        }
+        return 0;
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -52,7 +110,7 @@ export default class signIn extends Component {
                                     ref={(input) => this._password = input}
 
                                     style={styles.textinput}
-                                    secureTextEntry={this.state.secured}
+                                    secureTextEntry={true}
                                     placeholder={'Enter Password'}
                                     placeholderTextColor={'grey'}
                                     placeholderStyle={{ marginLeft: responsiveHeight(5) }}
@@ -67,7 +125,7 @@ export default class signIn extends Component {
                                     zIndex: 1,
                                     right: 10,
                                 }}> */}
-                                    {/* <AntDesign style={styles.eyeIcon} name="eyeo" size={20} color='#757575' /> */}
+                                {/* <AntDesign style={styles.eyeIcon} name="eyeo" size={20} color='#757575' /> */}
                                 {/* </View> */}
                             </View>
                             <TouchableOpacity onPress={() => {
@@ -76,19 +134,19 @@ export default class signIn extends Component {
                             }}>
                                 <Text style={{ textAlign: 'right', color: '#757575', fontSize: responsiveFontSize(1.8), padding: responsiveHeight(1.3) }}>Forgot Password? </Text>
                             </TouchableOpacity>
-                            <Text style={{ textAlign: 'center', color: '#220764', fontSize: responsiveFontSize(2) }}>{this.state.ErrorMessege}</Text>
+                            <Text style={{ textAlign: 'center', color: 'red', fontSize: responsiveFontSize(2) }}>{this.state.ErrorMessege}</Text>
                         </View>
 
                         <TouchableOpacity
                             style={styles.button1}
                             onPress={() => {
-                               // this.ValidationFn();
-                                 this.props.navigation.navigate('ProfileView');
-                                
+                                this.ValidationFn();
+                                //this.props.navigation.navigate('ProfileView');
+
                             }}>
                             {
                                 this.state.loader ?
-                                    <ActivityIndicator size={'small'} />
+                                    <ActivityIndicator size={'large'} color={'white'}/>
                                     :
                                     <Text style={[styles.buttonText, { color: '#fff' }]}>Sign In</Text>
                             }
@@ -153,7 +211,7 @@ const styles = StyleSheet.create({
     passwordView: {
         flexDirection: 'row',
         //alignContent: 'space-between',
-       // alignItems: 'center',
+        // alignItems: 'center',
         width: windowWidth - 40,
 
     },
@@ -176,7 +234,7 @@ const styles = StyleSheet.create({
     },
     eyeIcon: {
         alignSelf: "center",
-       // backgroundColor:'white',                                  
+        // backgroundColor:'white',                                  
         zIndex: 1,
         right: 10,
     }

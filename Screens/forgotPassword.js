@@ -13,15 +13,58 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
+import { passwordReset } from '../Screens/Firebase/auth'
 export default class forgotPassword extends Component {
 
-    state = {
-        password: '',
-        email: '',
+    constructor(props) {
+        super(props);
+        this.state = {
+            email: '',
+            password: '',
+        }
     }
     async componentDidMount() {
 
     }
+    async ForgotFn() {
+        await passwordReset(this.state.email);
+        alert('Please check your email to reset your password');
+        this.props.navigation.navigate('signIn');
+
+
+    }
+    async ValidationFn() {
+        this.setState({ loader: true, ErrorMessege: '' });
+        let TempCheck = await this.CheckValidateFn();
+
+        switch (TempCheck) {
+            case 0:
+                this.ForgotFn();
+                break;
+            case 1:
+                this.setState({ loader: false });
+                break;
+            default:
+                break;
+        }
+    }
+    async CheckValidateFn() {
+        //EmailCheck
+        let reg2 = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        if (reg2.test(this.state.email) === false) {
+            console.log('Email is Not Correct');
+            this.state.email !== undefined && this.state.email !== ''
+                ? this.setState({ ErrorMessege: 'Please enter proper Email Id' })
+                : this.setState({ ErrorMessege: 'Email cannot be empty' });
+            // this.setState({ email: text })
+            return 1;
+        }
+
+
+        return 0;
+    }
+
+
     render() {
         return (
             <View style={styles.container}>
@@ -49,27 +92,27 @@ export default class forgotPassword extends Component {
                                     this.setState({ email: text });
                                 }}
                             />
-                          
-                                {/* <View style={{
+
+                            {/* <View style={{
                                     backgroundColor:'white',                                  
                                     zIndex: 1,
                                     right: 10,
                                 }}> */}
-                                    {/* <AntDesign style={styles.eyeIcon} name="eyeo" size={20} color='#757575' /> */}
-                                {/* </View> */}
-                          
-                            <Text style={{ textAlign: 'center', color: '#220764', fontSize: responsiveFontSize(2) }}>{this.state.ErrorMessege}</Text>
+                            {/* <AntDesign style={styles.eyeIcon} name="eyeo" size={20} color='#757575' /> */}
+                            {/* </View> */}
+
+                            <Text style={{ textAlign: 'center', color: 'red', fontSize: responsiveFontSize(2) }}>{this.state.ErrorMessege}</Text>
                         </View>
 
                         <TouchableOpacity
                             style={styles.button1}
                             onPress={() => {
-                               // this.ValidationFn();
-                                 this.props.navigation.navigate('profilePic');
+                                this.ValidationFn();
+
                             }}>
                             {
                                 this.state.loader ?
-                                    <ActivityIndicator size={'small'} />
+                                    <ActivityIndicator size={'large'} color={'white'} />
                                     :
                                     <Text style={[styles.buttonText, { color: '#fff' }]}>Submit</Text>
                             }
@@ -105,7 +148,7 @@ const styles = StyleSheet.create({
         borderTopEndRadius: responsiveHeight(8),
         borderTopStartRadius: responsiveHeight(8),
     },
-    text: {   
+    text: {
         color: 'white',
         fontSize: responsiveFontSize(4.5),
         fontWeight: "700",
@@ -134,7 +177,7 @@ const styles = StyleSheet.create({
     passwordView: {
         flexDirection: 'row',
         //alignContent: 'space-between',
-       // alignItems: 'center',
+        // alignItems: 'center',
         width: windowWidth - 40,
 
     },
@@ -157,7 +200,7 @@ const styles = StyleSheet.create({
     },
     eyeIcon: {
         alignSelf: "center",
-       // backgroundColor:'white',                                  
+        // backgroundColor:'white',                                  
         zIndex: 1,
         right: 10,
     }

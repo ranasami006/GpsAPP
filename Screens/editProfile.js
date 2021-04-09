@@ -10,7 +10,6 @@ import {
     responsiveHeight,
     responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-import * as Location from 'expo-location';
 import { Entypo } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { Header } from 'react-native-elements'
@@ -18,74 +17,73 @@ import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-import {getData,upDateData,saveData} from '../Screens/Firebase/utility'
+import {saveData,uploadProductImage} from '../Screens/Firebase/utility'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-export default class ProfileView extends Component {
+
+export default class editProfile extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            password: '',
-            email: '',
-            image1: '',
-            Userdata:[],
+            name: this.props.route.params.Item.name,
+            email: this.props.route.params.Item.email,
+            image1: this.props.route.params.image,
+            phone:this.props.route.params.phone,
+            Userdata:this.props.route.params.Item,
         }
     }
     async componentDidMount() {
-      
-    
-        this.startFunction();
- 
-}
- startFunction=async()=>{
-    let userId= await AsyncStorage.getItem("Token");
-    let userinfo = await getData('users', userId);
-    await this.setState({
-        Userdata:userinfo,
-    })
-    if(userinfo.image){
-     this.setState({
-         image1:userinfo.image
-     })
- }
-    
- this.timerHandle = setInterval(async () => {
- await this.getUserCurrentPosition();
- }, 20000);
-}
-
-
-getUserCurrentPosition = async () => {
-    let { status } = await Location.requestPermissionsAsync();
-      if (status !== 'granted') {
-        this.setState({errorMsg:'Permission to access location was denied'});
-        return;
+       
+    }
+    async UpdateProfile(){
+        let userId= await AsyncStorage.getItem("Token");
+        let success= await saveData('users',userId,
+            {
+                name: this.state.name,
+                image:  this.state.downloadURL?
+                this.state.downloadURL
+                :this.state.image1?
+                this.state.image1
+                :null,
+                phone:this.state.phone,
+            }           
+            
+            );
+        
+        if(success){
+            this.props.navigation.navigate('ProfileView');
+        }
+        else{
+            this.setState({ loader: false });
+        }
+        
       }
+    async ValidationFn() {
+        this.setState({ loader: true, ErrorMessege: '' });
+        let TempCheck = await this.CheckValidateFn();
 
-      let location = await Location.getCurrentPositionAsync({});
-      this.setState({location:location});
-      let text = 'Waiting..';
-      if (this.state.errorMsg) {
-        text = this.state.errorMsg;
-      } else if (location) {
-        text = JSON.stringify(location);
-      }
-      console.log(text)
-     
-      this.setCuerrentLocationInDb(location.coords.latitude,location.coords.longitude) 
-
-}
-
-async setCuerrentLocationInDb(latitude, longitude) {
-    let data= await AsyncStorage.getItem("Token");
-    let detail = {
-        lat: latitude,
-        lng: longitude,
-        adminId:this.state.Userdata.adminId, 
-        vehicleName: this.state.Userdata.name,
-    };
-    let success = await saveData('vehicles', data, detail);
-}
-
+        switch (TempCheck) {
+            case 0:
+                this.UpdateProfile();
+                break;
+            case 1:
+                this.setState({ loader: false });
+                break;
+            default:
+                break;
+        }
+    }
+    async CheckValidateFn() {
+        let reg3 = /^(?=.{1,40}$)[a-zA-Z]+(?:[-'\s][a-zA-Z]+)*$/;
+        if (reg3.test(this.state.name) === false) {
+            this.state.name !== undefined && this.state.name !== ''
+                ? this.setState({
+                    ErrorMessege: 'Name can only contain letters of the alphabets',
+                })
+                : this.setState({ ErrorMessege: 'Name cannot be empty' });
+            return 1;
+        }
+        return 0;
+    }
 
 
     imagePicker1 = async () => {
@@ -95,10 +93,14 @@ async setCuerrentLocationInDb(latitude, longitude) {
             aspect: [4, 3],
             quality: 1,
         });
-        //console.log(result);
+        console.log(result);
 
         if (!result.cancelled) {
             this.setState({ image1: result.uri });
+            let downloadURL = await uploadProductImage(result.uri, this.state.name );
+            this.setState({
+                downloadURL:downloadURL
+            })
         }
     }
     render() {
@@ -110,7 +112,7 @@ async setCuerrentLocationInDb(latitude, longitude) {
                     barStyle="light-content" // or directly
 
                     centerComponent={{
-                        text: 'Profile',
+                        text: 'Edit Profile',
                         style: {
                             fontSize: responsiveFontSize(3.5),
                             fontWeight: 'bold',
@@ -139,8 +141,8 @@ async setCuerrentLocationInDb(latitude, longitude) {
 
                 <ScrollView style={styles.bottomView}>
 
-                    <View style={styles.profilePic}
-                        
+                    <TouchableOpacity style={styles.profilePic}
+                        onPress={() => this.imagePicker1()}
                     >
                         {!this.state.image1 ? (
                             <Text style={{
@@ -161,7 +163,7 @@ async setCuerrentLocationInDb(latitude, longitude) {
                             </Image>
                         )}
 
-                    </View>
+                    </TouchableOpacity>
 
                     <View style={styles.bottomform}>
                         <Text style={styles.headertext1}>Name</Text>
@@ -169,14 +171,14 @@ async setCuerrentLocationInDb(latitude, longitude) {
                         <TextInput
                             style={styles.textinput}
                             placeholder={'hello'}
-                            editable = {false}
+                            
                             placeholderTextColor={'grey'}
                             onSubmitEditing={() => this._password.focus()}
                             returnKeyType="next"
                             returnKeyLabel="next"
-                            value={this.state.Userdata.name}
+                            value={this.state.name}
                             onChangeText={(text) => {
-                                this.setState({ email: text });
+                                this.setState({ name: text });
                             }}
                         />
                         <Text style={styles.headertext1}>User Name</Text>
@@ -184,12 +186,12 @@ async setCuerrentLocationInDb(latitude, longitude) {
                         <TextInput
                             style={styles.textinput}
                             placeholder={'user name'}
-                            editable = {false}
+                            editable={false}
                             placeholderTextColor={'grey'}
                             onSubmitEditing={() => this._password.focus()}
                             returnKeyType="next"
                             returnKeyLabel="next"
-                            value={this.state.Userdata.email}
+                            value={this.state.email}
                             onChangeText={(text) => {
                                 this.setState({ email: text });
                             }}
@@ -205,10 +207,10 @@ async setCuerrentLocationInDb(latitude, longitude) {
                                 placeholderTextColor={'grey'}
                                 placeholderStyle={{ marginLeft: responsiveHeight(5) }}
                                 keyboardType={"numeric"}
-                                editable = {false}
-                                value={this.state.Userdata.phone}
+                               
+                                value={this.state.phone}
                                 onChangeText={(text) => {
-                                    this.setState({ password: text });
+                                    this.setState({ phone: text });
                                 }}
                             />
                             {/* <View style={{
@@ -230,15 +232,14 @@ async setCuerrentLocationInDb(latitude, longitude) {
                     <TouchableOpacity
                         style={styles.button1}
                         onPress={() => {
-                            this.props.navigation.navigate('editProfile',{
-                                    Item:this.state.Userdata
-                            });
+                         this.ValidationFn();
+                           // this.props.navigation.navigate('changeNumber');
                         }}>
                         {
                             this.state.loader ?
-                                <ActivityIndicator size={'small'} />
+                                <ActivityIndicator size={'large'} color={'white'} />
                                 :
-                                <Text style={[styles.buttonText, { color: '#fff' }]}>Edit profile</Text>
+                                <Text style={[styles.buttonText, { color: '#fff' }]}>Update profile</Text>
                         }
 
                     </TouchableOpacity>
