@@ -23,9 +23,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default class editProfile extends Component {
     constructor(props) {
         super(props);
+        let username=this.props.route.params.Item.email.split('@')
         this.state = {
             name: this.props.route.params.Item.name,
-            email: this.props.route.params.Item.email,
+            email:username[0] ,
             image1: this.props.route.params.image,
             phone:this.props.route.params.phone,
             Userdata:this.props.route.params.Item,
@@ -38,13 +39,7 @@ export default class editProfile extends Component {
         let userId= await AsyncStorage.getItem("Token");
         let success= await saveData('users',userId,
             {
-                name: this.state.name,
-                image:  this.state.downloadURL?
-                this.state.downloadURL
-                :this.state.image1?
-                this.state.image1
-                :null,
-                phone:this.state.phone,
+                name: this.state.name,     
             }           
             
             );
@@ -141,29 +136,7 @@ export default class editProfile extends Component {
 
                 <ScrollView style={styles.bottomView}>
 
-                    <TouchableOpacity style={styles.profilePic}
-                        onPress={() => this.imagePicker1()}
-                    >
-                        {!this.state.image1 ? (
-                            <Text style={{
-                                color: '#464646', textAlign: 'center',
-                                fontSize: responsiveFontSize(2.5),
-                                fontWeight: '700',
-                            }}>
-                                No image
-                            </Text>
-                        ) : (
-                            <Image source={{ uri: this.state.image1 }}
-                                style={{
-                                    width: 150,
-                                    height: 150,
-                                    borderRadius: 150 / 2
-                                }}
-                            >
-                            </Image>
-                        )}
-
-                    </TouchableOpacity>
+                  
 
                     <View style={styles.bottomform}>
                         <Text style={styles.headertext1}>Name</Text>
@@ -196,31 +169,7 @@ export default class editProfile extends Component {
                                 this.setState({ email: text });
                             }}
                         />
-                        <Text style={styles.headertext1}>Phone Number</Text>
-                        <View style={styles.passwordView}>
-                            <TextInput
-                                ref={(input) => this._password = input}
-
-                                style={styles.textinput}
-                                // secureTextEntry={this.state.secured}
-                                placeholder={'No phone number availble'}
-                                placeholderTextColor={'grey'}
-                                placeholderStyle={{ marginLeft: responsiveHeight(5) }}
-                                keyboardType={"numeric"}
-                               
-                                value={this.state.phone}
-                                onChangeText={(text) => {
-                                    this.setState({ phone: text });
-                                }}
-                            />
-                            {/* <View style={{
-                                    backgroundColor:'white',                                  
-                                    zIndex: 1,
-                                    right: 10,
-                                }}> */}
-                            {/* <AntDesign style={styles.eyeIcon} name="eyeo" size={20} color='#757575' /> */}
-                            {/* </View> */}
-                        </View>
+                       
 
                         <Text style={{
                             textAlign: 'center',

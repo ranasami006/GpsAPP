@@ -11,9 +11,8 @@ export async function signInFirebase(email, password) {
         
         let userinfo = await getData('users', user.user.uid);
           if (userinfo.isActive) {
-          console.log("Welcome pak",user.user.uid)
-       
-             AsyncStorage.setItem('Token', user.user.uid);
+          console.log("Welcome pak",user.user.uid) 
+            AsyncStorage.setItem('Token', user.user.uid);
            } else {
           success = false;
           await firebase.auth().signOut();

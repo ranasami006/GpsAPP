@@ -14,6 +14,7 @@ import { AntDesign } from '@expo/vector-icons';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 import { passwordReset } from '../Screens/Firebase/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export default class forgotPassword extends Component {
 
     constructor(props) {
@@ -21,10 +22,18 @@ export default class forgotPassword extends Component {
         this.state = {
             email: '',
             password: '',
+            lan:''
         }
     }
     async componentDidMount() {
-
+        let Languge= await AsyncStorage.getItem("Languge");
+        if(Languge==='German')
+        {   
+            this.setState({lan:true})
+        }
+        else{
+            this.setState({lan:false})
+        }
     }
     async ForgotFn() {
         await passwordReset(this.state.email);
@@ -71,18 +80,18 @@ export default class forgotPassword extends Component {
                 <StatusBar barStyle="light-content" />
                 <ImageBackground source={require('../assets/image8.png')} style={styles.image}>
 
-                    <Text style={styles.text}> Forgot Password</Text>
+                    <Text style={styles.text}>{this.state.lan?'Passwort vergessen':'Forgot Password'}</Text>
 
                     <View style={styles.bottomView}>
 
 
 
                         <View style={styles.bottomform}>
-                            <Text style={styles.headertext1}>Email</Text>
+                            <Text style={styles.headertext1}>{this.state.lan?'Email':'Email'}</Text>
 
                             <TextInput
                                 style={styles.textinput}
-                                placeholder={'Enter your recovery email'}
+                                placeholder={this.state.lan?'Geben Sie Ihre Wiederherstellungs-E-Mail ein':'Enter your recovery email'}
                                 placeholderTextColor={'grey'}
                                 onSubmitEditing={() => this._password.focus()}
                                 returnKeyType="next"
@@ -114,7 +123,7 @@ export default class forgotPassword extends Component {
                                 this.state.loader ?
                                     <ActivityIndicator size={'large'} color={'white'} />
                                     :
-                                    <Text style={[styles.buttonText, { color: '#fff' }]}>Submit</Text>
+                                    <Text style={[styles.buttonText, { color: '#fff' }]}>{this.state.lan?'einreichen':'Submit'}</Text>
                             }
 
                         </TouchableOpacity>
@@ -150,7 +159,7 @@ const styles = StyleSheet.create({
     },
     text: {
         color: 'white',
-        fontSize: responsiveFontSize(4.5),
+        fontSize: responsiveFontSize(4),
         fontWeight: "700",
         padding: responsiveHeight(2),
         marginTop: responsiveHeight(8),

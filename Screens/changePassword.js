@@ -19,6 +19,8 @@ import { useNavigation, DrawerActions } from '@react-navigation/native';
 import {updatePassword} from '../Screens/Firebase/auth'
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 export default class changePassword extends Component {
     constructor(props) {
@@ -28,6 +30,8 @@ export default class changePassword extends Component {
             currPassword:'',
             confirmpassword: '',
             isEnabled:false,
+            pageView:true,
+        lan:''
         }
     }   
     _handleToggleSwitch = () =>
@@ -35,7 +39,14 @@ export default class changePassword extends Component {
         isEnabled: !state.isEnabled,
     }));
     async componentDidMount() {
-
+        let Languge= await AsyncStorage.getItem("Languge");
+        if(Languge==='German')
+        {   
+            this.setState({lan:true,pageView:false,})
+        }
+        else{
+            this.setState({lan:false, pageView:false,})
+        }
     }
 
     async UpdatePassword(){
@@ -102,6 +113,11 @@ export default class changePassword extends Component {
     render() {
 
         return (
+            <>
+            {
+             this.state.pageView ?
+                   <ActivityIndicator size={'large'} color={'black'} style={{marginTop:responsiveHeight(10) }}/>
+           : 
             <View style={styles.container}>
                 <Header
                     statusBarProps={{ barStyle: 'light', backgroundColor: 'black' }}
@@ -129,7 +145,7 @@ export default class changePassword extends Component {
                 <ScrollView style={styles.bottomView}>
                     <Text style={{ textAlign: 'center', 
                     fontSize: responsiveFontSize(4), 
-                    fontWeight: '600' }}>Change Password</Text>
+                    fontWeight: '600' }}>{this.state.lan?"Passwort ändern":"Change Password"}</Text>
 
                     <View style={styles.bottomform}>
                         <View style={styles.passwordView}>
@@ -138,7 +154,7 @@ export default class changePassword extends Component {
 
                                 style={styles.textinput}
                                 secureTextEntry={this.state.isEnabled}
-                                placeholder={'Current Password'}
+                                placeholder={this.state.lan?"Aktuelles Passwort":'Current Password'}
                                 placeholderTextColor={'grey'}
                                 placeholderStyle={{ marginLeft: responsiveHeight(5) }}
                                 value={this.state.currPassword}
@@ -154,7 +170,9 @@ export default class changePassword extends Component {
 
                                 style={styles.textinput}
                                 secureTextEntry={this.state.isEnabled}
-                                placeholder={'New Password'}
+                                placeholder={this.state.lan?"Neues Passwort":'New Password'}
+                              
+                              
                                 placeholderTextColor={'grey'}
                                 placeholderStyle={{ marginLeft: responsiveHeight(5) }}
                                 
@@ -170,8 +188,11 @@ export default class changePassword extends Component {
 
                                 style={styles.textinput}
                                 secureTextEntry={this.state.isEnabled}
-                                placeholder={'Confirm Password'}
+                               
+                                placeholder={this.state.lan?"Passwort bestätigen":'Confirm Password'}
+                              
                                 placeholderTextColor={'grey'}
+                               
                                 placeholderStyle={{ marginLeft: responsiveHeight(5) }}
                                 
                                 value={this.state.confirmpassword}
@@ -181,7 +202,7 @@ export default class changePassword extends Component {
                             />
                         </View>
                            <View style={{justifyContent:'flex-end',alignContent:'flex-end',flexDirection:'row',margin:responsiveHeight(1)}}>    
-                            <Text style={{alignSelf:'center',textAlign:'right',fontSize:responsiveFontSize(1.3),marginLeft:3}}>Show</Text>
+                            <Text style={{alignSelf:'center',textAlign:'right',fontSize:responsiveFontSize(1.3),marginLeft:3}}>{this.state.lan?"Passwort anzeigen":"Show"}</Text>
                             <Switch
                                 trackColor={{ false: '#e3e3e3', true: '#464646' }}
                                 thumbColor={this.state.isEnabled ? 'black' : '#f0f0f0'}
@@ -205,7 +226,7 @@ export default class changePassword extends Component {
                             this.state.loader ?
                                 <ActivityIndicator size={'large'} color={'white'} />
                                 :
-                                <Text style={[styles.buttonText, { color: '#fff' }]}>Save</Text>
+                                <Text style={[styles.buttonText, { color: '#fff' }]}>{this.state.lan?"Speichern":"Save"}</Text>
                         }
 
                     </TouchableOpacity>
@@ -214,7 +235,8 @@ export default class changePassword extends Component {
 
 
             </View>
-
+    }
+    </>
         );
     }
 }

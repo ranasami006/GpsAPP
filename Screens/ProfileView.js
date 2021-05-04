@@ -3,7 +3,8 @@ import React, { Component } from 'react';
 import {
     Button, View, Text, Image, StyleSheet, Dimensions, TouchableOpacity,
     ImageBackground, TextInput,
-    ActivityIndicator, ScrollView
+    ActivityIndicator, ScrollView, BackHandler,
+    ToastAndroid,
 } from 'react-native';
 import {
     responsiveWidth,
@@ -18,8 +19,60 @@ import * as ImagePicker from 'expo-image-picker';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-import {getData,upDateData,saveData} from '../Screens/Firebase/utility'
+import * as TaskManager from 'expo-task-manager';
+import { getData, upDateData, saveData, UpdateuserDate } from '../Screens/Firebase/utility'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Permissions from 'expo-permissions';
+import * as BackgroundFetch from 'expo-background-fetch';
+const TASK_NAME = "BACKGROUND_TASK"
+
+TaskManager.defineTask('FetchLocationInBackground', ({ data, error }) => {
+    if (error) {
+      console.log("Error bg", error)
+      return;
+    }
+    if (data) {
+      const { locations } = data;
+      try {
+        const receivedNewData = 
+        test( locations[0].coords.latitude, 
+            locations[0].coords.longitude)
+   
+            // do your background fetch here
+       console.log("BGGGG->", locations[0].coords.latitude, 
+       locations[0].coords.longitude);
+        return receivedNewData ? BackgroundFetch.Result.NewData : BackgroundFetch.Result.NoData;
+      } catch (error) {
+        return BackgroundFetch.Result.Failed;
+      }  
+    }
+  });
+  async function test(latitude, longitude){
+    let detail = {
+        lat: latitude,
+        lng: longitude,   
+    };  
+    let data = await AsyncStorage.getItem("Token");
+    let success = await upDateData('vehicles', data, detail);
+    console.log("DONE Firbase")
+  }
+  const backgroundLocationFetch = async () => {
+    const { status } = await Permissions.askAsync(Permissions.LOCATION);
+    //const { status } = await Location.requestPermissionsAsync();
+    if (status === 'granted') {
+      console.log('cmon dance with me!')
+      
+      await Location.startLocationUpdatesAsync('FetchLocationInBackground', {
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 10000,
+        distanceInterval: 0,
+        foregroundService: {
+          notificationTitle: 'GPS Tracker',
+          notificationBody: 'Live Tracker is on,to stop please logout'
+        }
+      });
+    }
+  }
 export default class ProfileView extends Component {
     constructor(props) {
         super(props);
@@ -27,64 +80,123 @@ export default class ProfileView extends Component {
             password: '',
             email: '',
             image1: '',
-            Userdata:[],
+            Userdata: [],
+            pageView:true,
         }
     }
+
     async componentDidMount() {
-      
-    
         this.startFunction();
- 
-}
- startFunction=async()=>{
-    let userId= await AsyncStorage.getItem("Token");
-    let userinfo = await getData('users', userId);
-    await this.setState({
-        Userdata:userinfo,
-    })
-    if(userinfo.image){
-     this.setState({
-         image1:userinfo.image
-     })
- }
-    
- this.timerHandle = setInterval(async () => {
- await this.getUserCurrentPosition();
- }, 20000);
-}
-
-
-getUserCurrentPosition = async () => {
-    let { status } = await Location.requestPermissionsAsync();
-      if (status !== 'granted') {
-        this.setState({errorMsg:'Permission to access location was denied'});
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      this.setState({location:location});
-      let text = 'Waiting..';
-      if (this.state.errorMsg) {
-        text = this.state.errorMsg;
-      } else if (location) {
-        text = JSON.stringify(location);
-      }
-      console.log(text)
-     
-      this.setCuerrentLocationInDb(location.coords.latitude,location.coords.longitude) 
-
-}
-
-async setCuerrentLocationInDb(latitude, longitude) {
-    let data= await AsyncStorage.getItem("Token");
-    let detail = {
-        lat: latitude,
-        lng: longitude,
-        adminId:this.state.Userdata.adminId, 
-        vehicleName: this.state.Userdata.name,
+    }
+    componentWillUnmount = async () => {
+        BackHandler.removeEventListener(
+            'hardwareBackPress',
+            this.handleBackButtonClick,
+        );
     };
-    let success = await saveData('vehicles', data, detail);
-}
+    handleBackButtonClick() {
+        ToastAndroid.show('Please click on logout button!', ToastAndroid.SHORT);
+        return true;
+    }
+    startFunction = async () => {
+        BackHandler.addEventListener(
+            'hardwareBackPress',
+            this.handleBackButtonClick,
+        );
+        backgroundLocationFetch();
+        
+        let Languge= await AsyncStorage.getItem("Languge");
+        if(Languge==='German')
+        {   
+            this.setState({lan:true})
+        }
+        else{
+            this.setState({lan:false})
+        }
+        let userId = await AsyncStorage.getItem("Token");
+
+        let userinfo = await getData('users', userId);
+       
+       
+        
+        let username = userinfo.email.split('@')
+        await this.setState({
+            Userdata: userinfo,
+            email: username[0],
+            pageView:false,
+        })
+        let time = await getData('interval', '123456789');
+
+        var hours = new Date().getHours();
+
+
+        if (userinfo.image) {
+            this.setState({
+                image1: userinfo.image
+            })
+        }
+
+        this.timerHandle = setInterval(async () => {
+            if (hours >= time.mapInterval.start && hours <= time.mapInterval.end) {
+                await this.getUserCurrentPosition();
+                console.log("INNN")
+            }
+            else {
+                console.log("OUT")
+            }
+        }, 20000);
+    }
+
+
+    getUserCurrentPosition = async () => {
+
+        let { status } = await Location.requestPermissionsAsync();
+        // const { status1, expires, permissions } = await Permissions.getAsync(
+        //     Permissions.CALENDAR,
+        //     Permissions.CONTACTS
+        //   );
+        //   if (status !== 'granted') {
+        //     alert('Hey! You have not enabled selected permissions');
+        //   } 
+        //   else{
+        //     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        //         accuracy: Location.Accuracy.Balanced,
+        //       });
+        //   }
+      
+       if (status !== 'granted') {
+            this.setState({ errorMsg: 'Permission to access location was denied' });
+            return;
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+       
+        this.setState({ location: location });
+        let text = 'Waiting..';
+        if (this.state.errorMsg) {
+            text = this.state.errorMsg;
+        } else if (location) {
+            text = JSON.stringify(location);
+        }
+        console.log(text)
+
+        this.setCuerrentLocationInDb(location.coords.latitude, location.coords.longitude)
+
+    }
+
+    async setCuerrentLocationInDb(latitude, longitude) {
+        let data = await AsyncStorage.getItem("Token");
+        let detail = {
+            lat: latitude,
+            lng: longitude,
+            adminId: this.state.Userdata.adminId,
+            vehicleName: this.state.Userdata.name,
+        };
+        if(this.state.Userdata.adminId){
+        let success = await saveData('vehicles', data, detail);
+        console.log("DONE typing")
+        }
+    }
 
 
 
@@ -104,13 +216,19 @@ async setCuerrentLocationInDb(latitude, longitude) {
     render() {
 
         return (
+            <>
+             {
+              this.state.pageView ?
+                    <ActivityIndicator size={'large'} color={'black'} style={{marginTop:responsiveHeight(10) }}/>
+            : 
             <View style={styles.container}>
+             
                 <Header
                     statusBarProps={{ barStyle: 'light', backgroundColor: 'black' }}
                     barStyle="light-content" // or directly
 
                     centerComponent={{
-                        text: 'Profile',
+                        text: this.state.lan?"Profil":'Profile',
                         style: {
                             fontSize: responsiveFontSize(3.5),
                             fontWeight: 'bold',
@@ -139,8 +257,8 @@ async setCuerrentLocationInDb(latitude, longitude) {
 
                 <ScrollView style={styles.bottomView}>
 
-                    <View style={styles.profilePic}
-                        
+                    {/* <View style={styles.profilePic}
+
                     >
                         {!this.state.image1 ? (
                             <Text style={{
@@ -148,7 +266,7 @@ async setCuerrentLocationInDb(latitude, longitude) {
                                 fontSize: responsiveFontSize(2.5),
                                 fontWeight: '700',
                             }}>
-                                No image
+                               {this.state.lan?"Kein Bild":"No image"}
                             </Text>
                         ) : (
                             <Image source={{ uri: this.state.image1 }}
@@ -161,15 +279,15 @@ async setCuerrentLocationInDb(latitude, longitude) {
                             </Image>
                         )}
 
-                    </View>
+                    </View> */}
 
                     <View style={styles.bottomform}>
-                        <Text style={styles.headertext1}>Name</Text>
+                        <Text style={styles.headertext1}> {this.state.lan?"Fahrzeug":"Name"}</Text>
 
                         <TextInput
                             style={styles.textinput}
                             placeholder={'hello'}
-                            editable = {false}
+                            editable={false}
                             placeholderTextColor={'grey'}
                             onSubmitEditing={() => this._password.focus()}
                             returnKeyType="next"
@@ -179,46 +297,22 @@ async setCuerrentLocationInDb(latitude, longitude) {
                                 this.setState({ email: text });
                             }}
                         />
-                        <Text style={styles.headertext1}>User Name</Text>
+                        <Text style={styles.headertext1}> {this.state.lan?"Benutzername":"User Name"}</Text>
 
                         <TextInput
                             style={styles.textinput}
                             placeholder={'user name'}
-                            editable = {false}
+                            editable={false}
                             placeholderTextColor={'grey'}
                             onSubmitEditing={() => this._password.focus()}
                             returnKeyType="next"
                             returnKeyLabel="next"
-                            value={this.state.Userdata.email}
+                            value={this.state.email}
                             onChangeText={(text) => {
                                 this.setState({ email: text });
                             }}
                         />
-                        <Text style={styles.headertext1}>Phone Number</Text>
-                        <View style={styles.passwordView}>
-                            <TextInput
-                                ref={(input) => this._password = input}
-
-                                style={styles.textinput}
-                                // secureTextEntry={this.state.secured}
-                                placeholder={'No phone number availble'}
-                                placeholderTextColor={'grey'}
-                                placeholderStyle={{ marginLeft: responsiveHeight(5) }}
-                                keyboardType={"numeric"}
-                                editable = {false}
-                                value={this.state.Userdata.phone}
-                                onChangeText={(text) => {
-                                    this.setState({ password: text });
-                                }}
-                            />
-                            {/* <View style={{
-                                    backgroundColor:'white',                                  
-                                    zIndex: 1,
-                                    right: 10,
-                                }}> */}
-                            {/* <AntDesign style={styles.eyeIcon} name="eyeo" size={20} color='#757575' /> */}
-                            {/* </View> */}
-                        </View>
+                  
 
                         <Text style={{
                             textAlign: 'center',
@@ -230,27 +324,35 @@ async setCuerrentLocationInDb(latitude, longitude) {
                     <TouchableOpacity
                         style={styles.button1}
                         onPress={() => {
-                            this.props.navigation.navigate('editProfile',{
-                                    Item:this.state.Userdata
+                            this.props.navigation.navigate('editProfile', {
+                                Item: this.state.Userdata,
+
                             });
                         }}>
-                        {
-                            this.state.loader ?
-                                <ActivityIndicator size={'small'} />
-                                :
-                                <Text style={[styles.buttonText, { color: '#fff' }]}>Edit profile</Text>
-                        }
+                        
+                                <Text style={[styles.buttonText, { color: '#fff' }]}>{this.state.lan?"Profil bearbeiten":"Edit profile"}</Text>
+                        
 
                     </TouchableOpacity>
                 </ScrollView>
-
-
-
-            </View>
-
+                                
+       </View>
+    }
+      </>
+   
         );
     }
 }
+// TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+//     if (error) {
+//         console.log("eRrroor")
+//     }
+//     if (data) {
+//       const { locations } = data;
+//       // do something with the locations captured in the background
+//       console.log("PAKSKKSKSK")
+//     }
+//   });
 
 const styles = StyleSheet.create({
     container: {
@@ -306,7 +408,7 @@ const styles = StyleSheet.create({
     },
     button1: {
         height: 60,
-        width: 201,
+        width: 220,
         borderRadius: responsiveWidth(2),
         borderWidth: 1,
         borderColor: 'white',

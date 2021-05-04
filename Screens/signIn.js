@@ -15,24 +15,64 @@ import { connectFirebase } from '../Screens/Firebase/config'
 import { signInFirebase } from '../Screens/Firebase/auth'
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export default class signIn extends Component {
     constructor(props) {
         super(props);
         this.state = {
             email: '',
             password: '',
+            pageView:false,
+            lan:true   
         }
     }
     async componentDidMount() {
+        
+        this.setState({
+            pageView:true,
+        })
         connectFirebase();
+       
+        let Token=  await AsyncStorage.getItem("Token");
+        let Languge = await AsyncStorage.getItem("Languge");
+    if(Languge){
+     if (Languge === 'German') {
+      this.setState({ lan: true })
+    }
+    else {
+      console.log("pak")
+      this.setState({ lan: false, pageview: false })
+    }
+  }
+  else{
+    await AsyncStorage.setItem("Languge","German");
+    this.setState({ lan: true })
+  }
+        if(Token){
+            this.props.navigation.navigate('ProfileView');
+        }
+        else{
+            this.setState({
+                email: '',
+                password: '',
+                pageView:false,
+            })
+        }
+        this.setState({
+            pageView:false,
+        })
+    
     }
     async LoginFn(){
-        let success= await signInFirebase(this.state.email,this.state.password);
+        let email= this.state.email+"@gmail.com"
+        let success= await signInFirebase
+        (email,this.state.password);
         if(success){
             this.setState({ loader: false });
             this.props.navigation.navigate('ProfileView');
         }
         else{
+
             this.setState({ loader: false });
         }
         
@@ -54,47 +94,33 @@ export default class signIn extends Component {
     }
     async CheckValidateFn() {
         //EmailCheck
-        let reg2 = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-        if (reg2.test(this.state.email) === false) {
-            console.log('Email is Not Correct');
-            this.state.email !== undefined && this.state.email !== ''
-                ? this.setState({ ErrorMessege: 'Please enter proper Email Id' })
-                : this.setState({ ErrorMessege: 'Email cannot be empty' });
-            // this.setState({ email: text })
-            return 1;
-        }
+        
 
-        let reg1 = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
-        if (reg1.test(this.state.password) === false) {
-            console.log('UserName is Not Correct');
-            this.state.password === ''
-                ? this.setState({ ErrorMessege: 'Password cannot Not be empty' })
-                : this.state.password.length > 7
-                    ? this.setState({ ErrorMessege: 'Please enter proper Password that contains at least one letter, one number and one special character ' })
-                    : this.setState({
-                        ErrorMessege: 'Password should be atleast 8 characters!',
-                    });
-            // this.setState({ email: text })
-            return 1;
-        }
+       
         return 0;
     }
 
     render() {
         return (
-            <View style={styles.container}>
+            <>
+            {
+                this.state.pageView ?
+                    <ActivityIndicator size={'large'} color={'black'} style={{marginTop:windowHeight/2 }}/>
+            :
+           
+           <View style={styles.container}>
                 <StatusBar barStyle="light-content" />
-                <ImageBackground source={require('../assets/image8.png')} style={styles.image}>
+                <ImageBackground source={require('../assets/gpsappBackground.jpeg')} style={styles.image}>
 
                     <Text style={styles.text}>Sign In</Text>
 
                     <View style={styles.bottomView}>
                         <View style={styles.bottomform}>
-                            <Text style={styles.headertext1}>User Name</Text>
+                            <Text style={styles.headertext1}>{this.state.lan?"Nutzername":"User Name"}</Text>
 
                             <TextInput
                                 style={styles.textinput}
-                                placeholder={'Enter your user name'}
+                                placeholder={this.state.lan?"Geben Sie Ihren Benutzernamen ein":'Enter your user name'}
                                 placeholderTextColor={'grey'}
                                 onSubmitEditing={() => this._password.focus()}
                                 returnKeyType="next"
@@ -104,14 +130,14 @@ export default class signIn extends Component {
                                     this.setState({ email: text });
                                 }}
                             />
-                            <Text style={styles.headertext1}>Password</Text>
+                            <Text style={styles.headertext1}>{this.state.lan?"Passwort":"Password"}</Text>
                             <View style={styles.passwordView}>
                                 <TextInput
                                     ref={(input) => this._password = input}
 
                                     style={styles.textinput}
                                     secureTextEntry={true}
-                                    placeholder={'Enter Password'}
+                                    placeholder={this.state.lan?'Passwort eingeben':'Enter Password'}
                                     placeholderTextColor={'grey'}
                                     placeholderStyle={{ marginLeft: responsiveHeight(5) }}
 
@@ -132,7 +158,7 @@ export default class signIn extends Component {
 
                                 this.props.navigation.navigate('forgotPassword');
                             }}>
-                                <Text style={{ textAlign: 'right', color: '#757575', fontSize: responsiveFontSize(1.8), padding: responsiveHeight(1.3) }}>Forgot Password? </Text>
+                                <Text style={{ textAlign: 'right', color: '#757575', fontSize: responsiveFontSize(1.8), padding: responsiveHeight(1.3) }}>{this.state.lan?"Passwort vergessen?":"Forgot Password?"}</Text>
                             </TouchableOpacity>
                             <Text style={{ textAlign: 'center', color: 'red', fontSize: responsiveFontSize(2) }}>{this.state.ErrorMessege}</Text>
                         </View>
@@ -148,7 +174,7 @@ export default class signIn extends Component {
                                 this.state.loader ?
                                     <ActivityIndicator size={'large'} color={'white'}/>
                                     :
-                                    <Text style={[styles.buttonText, { color: '#fff' }]}>Sign In</Text>
+                                    <Text style={[styles.buttonText, { color: '#fff' }]}>{this.state.lan?"Einloggen":"Sign In"}</Text>
                             }
 
                         </TouchableOpacity>
@@ -157,7 +183,8 @@ export default class signIn extends Component {
 
                 </ImageBackground>
             </View>
-
+                    }
+                    </>
         );
     }
 }
@@ -175,7 +202,7 @@ const styles = StyleSheet.create({
     },
     bottomView: {
         width: windowWidth,
-        height: windowHeight / 1.3,
+        height: windowHeight / 1.2,
         backgroundColor: 'white',
         position: 'absolute',
         bottom: 0,
@@ -186,16 +213,16 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: responsiveFontSize(4.5),
         fontWeight: "700",
-        padding: responsiveHeight(3),
-        marginTop: responsiveHeight(8),
+        padding: responsiveHeight(1.5),
+        marginTop: responsiveHeight(1),
         letterSpacing: 4,
     },
     bottomform: {
-        marginTop: responsiveHeight(5),
-        padding: responsiveHeight(3),
+        marginTop: responsiveHeight(1),
+        padding: responsiveHeight(2),
     },
     headertext1: {
-        fontSize: responsiveFontSize(3.5),
+        fontSize: responsiveFontSize(2.5),
         marginTop: responsiveHeight(1),
         marginBottom: responsiveHeight(1),
     },
@@ -225,7 +252,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignSelf: 'center',
         backgroundColor: '#464646',
-        // marginTop: responsiveWidth(1),
+        marginTop: responsiveWidth(-4),
     },
     buttonText: {
         fontSize: responsiveFontSize(3),

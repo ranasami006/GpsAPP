@@ -17,24 +17,40 @@ import { Header } from 'react-native-elements'
 import * as ImagePicker from 'expo-image-picker';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export default class settings extends Component {
     state = {
         password: '',
         email: '',
         isEnabled:'false',
+        pageView:true,
+        lan:''
     }
     _handleToggleSwitch = () =>
     this.setState(state => ({
         isEnabled: !state.isEnabled,
     }));
     async componentDidMount() {
+        let Languge= await AsyncStorage.getItem("Languge");
+        if(Languge==='German')
+        {   
+            this.setState({lan:true,pageView:false,})
+        }
+        else{
+            this.setState({lan:false, pageView:false,})
+        }
 
     }
    
     render() {
 
         return (
-            <View style={styles.container}>
+           <>
+             {
+              this.state.pageView ?
+                    <ActivityIndicator size={'large'} color={'black'} style={{marginTop:responsiveHeight(10) }}/>
+            : 
+           <View style={styles.container}>
                 <Header
                     statusBarProps={{ barStyle: 'light', backgroundColor: 'black' }}
                     barStyle="light-content" // or directly
@@ -59,7 +75,7 @@ export default class settings extends Component {
                     }}
                 />
                 <ScrollView style={styles.bottomView}>
-                    <Text style={{ textAlign: 'center', fontSize: responsiveFontSize(4), fontWeight: 'bold' }}>Setting</Text>
+                    <Text style={{ textAlign: 'center', fontSize: responsiveFontSize(4), fontWeight: 'bold' }}>{this.state.lan?"Einstellungen":"Setting"}</Text>
 
                     <View style={styles.bottomform}>
                         <View style={{flexDirection:'row',marginTop:responsiveHeight(0)}}>
@@ -69,14 +85,14 @@ export default class settings extends Component {
                                 size={responsiveWidth(7)}
                                 style={styles.iconHead}
                             />
-                            <Text style={styles.headertext1}>Account</Text>
+                            <Text style={styles.headertext1}>{this.state.lan?"Sprache":"Account"}</Text>
                         </View>
                         <TouchableOpacity style={styles.passwordView}
                         onPress={() => {
                             this.props.navigation.navigate('languges');
                           }}
                         >
-                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>Languge</Text>
+                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>{this.state.lan?"Sprache":"Languge"}</Text>
                         <AntDesign
                                 name="arrowright"
                                 color={'#000'}
@@ -91,14 +107,14 @@ export default class settings extends Component {
                                 size={responsiveWidth(7)}
                                 style={styles.iconHead}
                             />
-                            <Text style={styles.headertext1}>Help</Text>
+                            <Text style={styles.headertext1}>{this.state.lan?"Hilfe":"Help"}</Text>
                         </View>
                         <TouchableOpacity style={styles.passwordView}
                         onPress={() => {
                             this.props.navigation.navigate('About');
                           }}
                         >
-                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>Help center</Text>
+                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>{this.state.lan?"Hilfe Center":"Help center"}</Text>
                         <AntDesign
                                 name="arrowright"
                                 color={'#000'}
@@ -114,13 +130,13 @@ export default class settings extends Component {
                                 size={responsiveWidth(7)}
                                 style={styles.iconHead}
                             />
-                            <Text style={styles.headertext1}>Security</Text>
+                            <Text style={styles.headertext1}>{this.state.lan?"Sicherheit":"Security"}</Text>
                         </View>
                         <TouchableOpacity style={styles.passwordView}
                         onPress={() => {
                             this.props.navigation.navigate('changePassword');
                           }}>
-                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>Change password</Text>
+                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>{this.state.lan?"Passwort ändern":"Change password"}</Text>
                         <AntDesign
                                 name="arrowright"
                                 color={'#000'}
@@ -135,14 +151,14 @@ export default class settings extends Component {
                                 size={responsiveWidth(7)}
                                 style={styles.iconHead}
                             />
-                            <Text style={styles.headertext1}>About</Text>
+                            <Text style={styles.headertext1}>{this.state.lan?"Info":"About"}</Text>
                         </View>
                         <TouchableOpacity style={styles.passwordView}
                         onPress={() => {
                             this.props.navigation.navigate('About');
                           }}
                         >
-                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>Date policy</Text>
+                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>{this.state.lan?"Data Policy":"Data Policy"}</Text>
                         <AntDesign
                                 name="arrowright"
                                 color={'#000'}
@@ -158,7 +174,7 @@ export default class settings extends Component {
                           }}
                         
                         >
-                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>Terms of use</Text>
+                        <Text style={{alignSelf:'center',fontSize:responsiveFontSize(2.5),color:'#757575'}}>{this.state.lan?"Nutzungsbedingungen":"Terms of use"}</Text>
                         <AntDesign
                                 name="arrowright"
                                 color={'#000'}
@@ -175,7 +191,8 @@ export default class settings extends Component {
 
 
             </View>
-
+    }
+</>
         );
     }
 }

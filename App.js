@@ -22,19 +22,19 @@ import languges from './Screens/languges'
 import About from './Screens/About'
 import settings from './Screens/settings'
 import editProfile from './Screens/editProfile'
-
+import timeInterval from './Screens/timeInterval'
 const Drawer = createDrawerNavigator();
 const MainStack = createStackNavigator();
 
 const Main = () => {
+  
   return (
-
       <MainStack.Navigator initialRouteName="signIn" screenOptions={{ headerShown: false, gestureEnabled: true }} >
           <MainStack.Screen name="signIn" component={signIn} />
           <MainStack.Screen name="forgotPassword" component={forgotPassword} />
           <MainStack.Screen name="profilePic" component={profilePic} />
           <MainStack.Screen name="ProfileView" component={ProfileView} />
-        
+          <MainStack.Screen name="timeInterval" component={timeInterval} />
           <MainStack.Screen name="changeNumber" component={changeNumber} />
           <MainStack.Screen name="verificationCode" component={verificationCode} />
           <MainStack.Screen name="changePassword" component={changePassword} />
@@ -62,13 +62,13 @@ Main.navigationOptions = ({ navigation }) => {
 
 export default App=()=> {
   return (
-    <NavigationContainer>
+<NavigationContainer>
   <Drawer.Navigator initialRouteName="Main"
   drawerPosition="right"
     edgeWidth={0}
     drawerContent={props => <CustomDrawer {...props} />}
     statusBarAnimation={'slide'}
-    //hideStatusBar={true}
+      hideStatusBar={true}
       drawerStyle={{
         backgroundColor: '#fff',
         width: responsiveWidth(70),

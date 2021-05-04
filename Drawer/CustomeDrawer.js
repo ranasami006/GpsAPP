@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  AsyncStorage,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {
   responsiveWidth,
@@ -21,14 +21,62 @@ import {
 } from 'react-native-responsive-dimensions';
 import * as firebase from 'firebase'
 import { FontAwesome, Entypo, Ionicons, AntDesign, MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 export default class CustomDrawer extends Component {
-  state = {
-    email: '',
-  };
-
+  constructor(props) {
+    super(props);
+    this.state = {
+      email: '',
+      pageview: true,
+      lan: '',
+    };
+  }
   async componentDidMount() {
+    
+    let Languge = await AsyncStorage.getItem("Languge");
+    if(Languge){
+     if (Languge === 'German') {
+      this.setState({ lan: true })
+    }
+    else {
+      console.log("pak")
+      this.setState({ lan: false, pageview: false })
+    }
+  }
+  else{
+    await AsyncStorage.setItem("Languge","German");
+    this.setState({ lan: true })
+  }
+  }
 
+  async Logout() {
+    Alert.alert(
+      "Log out",
+      this.state.lan ? "Möchtest du ausloggen?" : "Are you sure you want to log out?",
+      [
+        {
+          text: this.state.lan ? "Abbruch" : "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "OK", onPress: () => this.logMeOut() }
+      ],
+      { cancelable: false }
+    );
+
+
+  }
+  async logMeOut() {
+    await AsyncStorage.removeItem('Token')
+    await firebase.auth().signOut();
+    Location.hasStartedLocationUpdatesAsync("FetchLocationInBackground").then((value) => {
+      if (value) {
+        Location.stopLocationUpdatesAsync("FetchLocationInBackground");
+      }
+    });
+    this.props.navigation.navigate('signIn');
   }
 
   render() {
@@ -65,78 +113,98 @@ export default class CustomDrawer extends Component {
             </TouchableOpacity>
 
           </View>
-          <View style={styles.bottomContainer}>
-            <TouchableOpacity
-              onPress={() => {
-                this.props.navigation.navigate('settings');
-              }}
-              style={styles.tab}>
-              <View style={styles.iconView}>
-                <AntDesign
-                  name={'setting'}
-                  color={'white'}
-                  size={responsiveHeight(3)}
-                  style={{ alignSelf: 'center', }}
-                />
-                <Text style={styles.text1}>
-                  settings
-              </Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                this.props.navigation.navigate('changePassword');
-              }}
-              style={styles.tab}>
-              <View style={styles.iconView}>
-                <AntDesign
-                  name={'downcircleo'}
-                  color={'white'}
-                  size={responsiveHeight(3)}
-                  style={{}}
-                />
-                <Text style={styles.text1}>
-                  Change Password
-              </Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                this.props.navigation.navigate('About');
-              }}
-              style={styles.tab}>
-              <View style={styles.iconView}>
-                <AntDesign
-                  name={'infocirlceo'}
-                  color={'white'}
-                  size={responsiveHeight(3)}
-                  style={{ alignSelf: 'center', }}
-                />
-                <Text style={styles.text1}>
-                  About
-              </Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={ async () => {
-                await firebase.auth().signOut();
-                this.props.navigation.navigate('signIn');
-              }}
-              style={styles.tab}>
-              <View style={styles.iconView}>
-                <MaterialIcons
-                  name={'logout'}
-                  color={'white'}
-                  size={responsiveHeight(3)}
-                  style={{ transform: [{ rotate: '270deg' }] }}
-                />
-                <Text style={styles.text1}>
-                  Log out
-              </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+          {this.state.pageView ?
+            <ActivityIndicator size={'large'} color={'black'} style={{ marginTop: responsiveHeight(10) }} />
+            :
+            <View style={styles.bottomContainer}>
+              <TouchableOpacity
+                onPress={() => {
+                  this.props.navigation.navigate('settings');
+                }}
+                style={styles.tab}>
+                <View style={styles.iconView}>
+                  <AntDesign
+                    name={'setting'}
+                    color={'white'}
+                    size={responsiveHeight(3)}
+                    style={{ alignSelf: 'center', }}
+                  />
+                  <Text style={styles.text1}>
+                    {this.state.lan ? "Einstellungen" : "settings"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  this.props.navigation.navigate('changePassword');
+                }}
+                style={styles.tab}>
+                <View style={styles.iconView}>
+                  <AntDesign
+                    name={'downcircleo'}
+                    color={'white'}
+                    size={responsiveHeight(3)}
+                    style={{}}
+                  />
+                  <Text style={styles.text1}>
+                    {this.state.lan ? "Passwort ändern" : "Change Password"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  this.props.navigation.navigate('About');
+                }}
+                style={styles.tab}>
+                <View style={styles.iconView}>
+                  <AntDesign
+                    name={'infocirlceo'}
+                    color={'white'}
+                    size={responsiveHeight(3)}
+                    style={{ alignSelf: 'center', }}
+                  />
+                  <Text style={styles.text1}>
+                    {this.state.lan ? "Informationen" : "About"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={
 
+                  async () => {
+
+                    this.props.navigation.navigate('timeInterval');
+                  }}
+                style={styles.tab}>
+                <View style={styles.iconView}>
+
+                  <Ionicons name="timer-outline" color={'white'}
+                    size={responsiveHeight(3)} />
+                  <Text style={styles.text1}>
+                    {this.state.lan ? "Zeitintervall" : "Time Interval"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={
+                  () => this.Logout()
+                }
+                style={styles.tab}>
+                <View style={styles.iconView}>
+                  <MaterialIcons
+                    name={'logout'}
+                    color={'white'}
+                    size={responsiveHeight(3)}
+                    style={{ transform: [{ rotate: '270deg' }] }}
+                  />
+                  <Text style={styles.text1}>
+                    {this.state.lan ? "Ausloggen" : " Log out"}
+
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          }
 
         </ScrollView>
       </View>

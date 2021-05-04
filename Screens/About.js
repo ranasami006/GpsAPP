@@ -21,19 +21,24 @@ import { useNavigation, DrawerActions } from '@react-navigation/native';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 //const navigation = useNavigation();
+import {getData} from "./Firebase/utility"
 export default class About extends Component {
 
     state = {
         password: '',
         email: '',
         isEnabled: 'false',
+        terms:'',
     }
     _handleToggleSwitch = () =>
         this.setState(state => ({
             isEnabled: !state.isEnabled,
         }));
     async componentDidMount() {
-
+        let data=await getData("terms","123456789")
+        await this.setState({
+            terms:data.termsConditions
+        })
     }
     getListViewItem = (item) => {
         Alert.alert(item.key);
@@ -70,11 +75,8 @@ export default class About extends Component {
                     <Text style={{ textAlign: 'center', fontSize: responsiveFontSize(4), fontWeight: 'bold' }}>About</Text>
 
                     <View style={styles.bottomform}>
-                        <Text style={{textAlign:'center',fontSize:responsiveHeight(1.9),color:'#464646',}}>
-                        These Terms and Conditions constitute a legally binding agreement made between you, 
-                        whether personally or on behalf of an entity (“you”) and [business entity name] (“we,” “us” or “our”), 
-                        concerning your access to and use of the [website name.com] website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the “Site”).{"\n"}{"\n"}
-                        These Terms and Conditions constitute a legally binding agreement made between you, whether personally or on behalf of an entity (“you”) and [business entity name] (“we,” “us” or “our”), concerning your access to and use of the [website name.com] website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the “Site”).
+                        <Text style={{textAlign:'center',fontSize:responsiveHeight(2),color:'#464646',}}>
+                       {this.state.terms}
                         </Text>
                     </View>
 
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
 
     },
     bottomform: {
-        // marginTop: responsiveHeight(5),
+       width:windowWidth-10,
         padding: responsiveHeight(3),
         marginBottom:responsiveHeight(8)
     },
