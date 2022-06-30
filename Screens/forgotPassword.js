@@ -78,7 +78,7 @@ export default class forgotPassword extends Component {
         return (
             <View style={styles.container}>
                 <StatusBar barStyle="light-content" />
-                <ImageBackground source={require('../assets/image8.png')} style={styles.image}>
+                <ImageBackground source={require('../assets/gpsappBackground.jpeg')} style={styles.image}>
 
                     <Text style={styles.text}>{this.state.lan?'Passwort vergessen':'Forgot Password'}</Text>
 
@@ -151,11 +151,11 @@ const styles = StyleSheet.create({
     bottomView: {
         width: windowWidth,
         height: windowHeight / 1.3,
-        backgroundColor: 'white',
+        backgroundColor:'rgba(52, 52, 52, 0.3)',
         position: 'absolute',
         bottom: 0,
-        borderTopEndRadius: responsiveHeight(8),
-        borderTopStartRadius: responsiveHeight(8),
+      //  borderTopEndRadius: responsiveHeight(8),
+        //borderTopStartRadius: responsiveHeight(8),
     },
     text: {
         color: 'white',
@@ -173,6 +173,8 @@ const styles = StyleSheet.create({
         fontSize: responsiveFontSize(3.5),
         marginTop: responsiveHeight(1),
         marginBottom: responsiveHeight(1),
+        color:'white',
+        fontWeight:'bold'
     },
     textinput: {
         height: responsiveHeight(8),

@@ -112,10 +112,9 @@ export default class signIn extends Component {
                 <StatusBar barStyle="light-content" />
                 <ImageBackground source={require('../assets/gpsappBackground.jpeg')} style={styles.image}>
 
-                    <Text style={styles.text}>Sign In</Text>
-
                     <View style={styles.bottomView}>
                         <View style={styles.bottomform}>
+                        <Text style={styles.text}>{this.state.lan?"Anmelden":"Sign In"}</Text>
                             <Text style={styles.headertext1}>{this.state.lan?"Nutzername":"User Name"}</Text>
 
                             <TextInput
@@ -146,19 +145,12 @@ export default class signIn extends Component {
                                         this.setState({ password: text });
                                     }}
                                 />
-                                {/* <View style={{
-                                    backgroundColor:'white',                                  
-                                    zIndex: 1,
-                                    right: 10,
-                                }}> */}
-                                {/* <AntDesign style={styles.eyeIcon} name="eyeo" size={20} color='#757575' /> */}
-                                {/* </View> */}
                             </View>
                             <TouchableOpacity onPress={() => {
 
                                 this.props.navigation.navigate('forgotPassword');
                             }}>
-                                <Text style={{ textAlign: 'right', color: '#757575', fontSize: responsiveFontSize(1.8), padding: responsiveHeight(1.3) }}>{this.state.lan?"Passwort vergessen?":"Forgot Password?"}</Text>
+                                <Text style={{ textAlign: 'right', color: 'white', fontSize: responsiveFontSize(2), padding: responsiveHeight(1.3) }}>{this.state.lan?"Passwort vergessen?":"Forgot Password?"}</Text>
                             </TouchableOpacity>
                             <Text style={{ textAlign: 'center', color: 'red', fontSize: responsiveFontSize(2) }}>{this.state.ErrorMessege}</Text>
                         </View>
@@ -202,29 +194,29 @@ const styles = StyleSheet.create({
     },
     bottomView: {
         width: windowWidth,
-        height: windowHeight / 1.2,
-        backgroundColor: 'white',
-        position: 'absolute',
-        bottom: 0,
-        borderTopEndRadius: responsiveHeight(8),
-        borderTopStartRadius: responsiveHeight(8),
+        height:windowHeight/1.6,
+        backgroundColor:'rgba(52, 52, 52, 0.3)',
+        marginTop:responsiveHeight(2),
     },
     text: {
         color: 'white',
         fontSize: responsiveFontSize(4.5),
         fontWeight: "700",
         padding: responsiveHeight(1.5),
-        marginTop: responsiveHeight(1),
+        //marginTop: responsiveHeight(1),
         letterSpacing: 4,
+        alignSelf:'center',
     },
     bottomform: {
-        marginTop: responsiveHeight(1),
+       // marginTop: responsiveHeight(1),
         padding: responsiveHeight(2),
     },
     headertext1: {
-        fontSize: responsiveFontSize(2.5),
+        fontSize: responsiveFontSize(3),
         marginTop: responsiveHeight(1),
         marginBottom: responsiveHeight(1),
+        color:'white',
+        fontWeight:'bold',
     },
     textinput: {
         height: responsiveHeight(8),
